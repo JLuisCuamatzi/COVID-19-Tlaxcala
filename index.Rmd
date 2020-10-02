@@ -1,5 +1,5 @@
 ---
-title: "COVID-19 25 de septiembre de 2020"
+title: "COVID-19 01 de octubre de 2020"
 author: "Por Jorge Cuamatzi"
 date: '`r format(Sys.Date())`'
 output: html_document
@@ -15,7 +15,7 @@ h1 {color: red;}
 h2 {color: green;}
 ```
 
-# 25 de septiembre de 2020
+# 01 de octubre de 2020
 
 ```{r, include=FALSE, warning=FALSE, fig.align="center"}
 library(tidyr)
@@ -28,6 +28,7 @@ library(viridis)
 library(knitr)
 library(kableExtra)
 library(leaflet)
+library(grid)
 ```
 
 ## Obteniendo datos diarios de COVID-19 en México desde el portal habilitado por el [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
@@ -36,7 +37,7 @@ library(leaflet)
 ```{r Database, include=FALSE, warning=FALSE, fig.align="center"}
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-Mex_Data_COVID <- read.csv(unz(temp, "200925COVID19MEXICO.csv"))
+Mex_Data_COVID <- read.csv(unz(temp, "201001COVID19MEXICO.csv"))
 unlink(temp); rm(temp)
 ```
 
@@ -547,7 +548,8 @@ Def_edad_Tlx_meses <- ggplot(def_mes_Tlx, aes(x= sexo, y = edad))+
         axis.text.y = element_text(face = "bold", color = "blue", size = 11, angle = 45),
         axis.title.x = element_text(face = "bold", color = "black", size = 12),
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
-        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5)); ggplotly(Def_edad_Tlx_meses)
+        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5),
+        panel.spacing = unit(2, "lines")); ggplotly(Def_edad_Tlx_meses)
 
 
 ```
