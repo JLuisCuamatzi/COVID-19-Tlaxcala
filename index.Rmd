@@ -12,10 +12,9 @@ knitr::opts_chunk$set(echo = T)
 
 ``` {css, echo = F}
 h1 {color: darkred;}
-h2 {color: darkgreen;}
 ```
 
-# 24 de octubre de 2020
+# 30 de octubre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
@@ -34,13 +33,15 @@ library(kableExtra)
 library(leaflet)
 library(grid)
 library(ggpubr)
+library(plotly)
 ```
 
 ```{r Database, include=FALSE, warning=FALSE, fig.align="center"}
 # Downloading the database from government portal
+rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-Mex_Data_COVID <- read.csv(unz(temp, "201024COVID19MEXICO.csv"))
+Mex_Data_COVID <- read.csv(unz(temp, "201030COVID19MEXICO.csv"))
 unlink(temp); rm(temp)
 ```
 
@@ -70,9 +71,6 @@ Mex_Data_COVID$tipo_paciente[Mex_Data_COVID$tipo_paciente == "2"] <- "Hospitaliz
 Mex_Data_COVID$sexo[Mex_Data_COVID$sexo == "2"] <- "Hombre"
 Mex_Data_COVID$sexo[Mex_Data_COVID$sexo == "1"] <- "Mujer"
 Mex_Data_COVID$value <- Mex_Data_COVID$clasificacion_final
-
-
-
 ```
 
 ```{r, echo = F, warning=F}
@@ -93,6 +91,7 @@ today <- Sys.Date()
 
 CasosMex_plot <- plot_ly(CasosMex, labels = ~Resultado, values = ~Casos, type = 'pie',
                          textposition = 'inside',
+                         texttemplate = "%{label}: %{value:,}",
                          insidetextfont = list(color = '#FFFFFF'),
                          marker = list(colors = colors, line = list(color = '#FFFFFF', width = 1))) %>% layout(title = paste('Resultados de las pruebas hechas en México de COVID-19 al', today, sep = " "),
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
@@ -120,7 +119,7 @@ mxstate_leaflet(mn_Mx,
 
 ```{r, echo = F, warning=F}
 mn_Mx_Edos <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente", "sexo","state_name"), summarise,
-                           casos = length(value))
+                    casos = length(value))
 
 plot_casos_estados <- ggplot(mn_Mx_Edos, aes(x = as.Date(fecha_sintomas), y = casos, fill = tipo_paciente))+
   geom_bar(stat = "identity") +
@@ -134,9 +133,14 @@ plot_casos_estados <- ggplot(mn_Mx_Edos, aes(x = as.Date(fecha_sintomas), y = ca
         axis.title.x = element_text(face = "bold", color = "black", size = 12),
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
         plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
-  scale_x_date(date_breaks = "months" , date_labels = "%b");plot_casos_estados
+  scale_x_date(date_breaks = "months" , date_labels = "%b");
+
+ggsave("Casos_estados_20201030.jpg",plot_casos_estados, dpi = 500, width = 13, height = 9)
+
+```
 
 
+```{r, echo = F, warning=F}
 mn_Mx_2 <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente", "sexo"), summarise,
                            casos = length(value))
 
@@ -160,8 +164,8 @@ plot_casos <- ggplot(mn_Mx_2, aes(x = as.Date(fecha_sintomas), y = casos, fill =
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
         plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
   scale_x_date(date_breaks = "months" , date_labels = "%b")+
-  annotate(geom="text", x=as.Date("2020-04-10"), y=8000, label= c("Ambulatorio =                                ",n_amb), color="red") +
-  annotate(geom="text", x=as.Date("2020-04-10"), y=7500, label= c("Hospitalizado =                                  ",n_hosp), color="red");ggplotly(plot_casos)
+  annotate(geom="text", x=as.Date("2020-04-30"), y=8000, label= c("Ambulatorio =                                ",n_amb), color="red") +
+  annotate(geom="text", x=as.Date("2020-04-30"), y=7500, label= c("Hospitalizado =                                  ",n_hosp), color="red");ggplotly(plot_casos)
 
 rm(mn_Mx_2, sum_pacientes, n_amb, n_hosp)
 
@@ -199,31 +203,26 @@ rm(MujPosMexAmb, MujPosMexHosp, HomPosMexAmb, HomPosMexHosp)
 
 CasosSexoMex_plot <- plot_ly(CasosSexoMex, labels = ~Tipo_paciente, values = ~Casos, type = 'pie',
                          textposition = 'inside',
-                         insidetextfont = list(color = '#FFFFFF'),
-                         marker = list(colors = c("violet","pink","royalblue3","lightblue"), line = list(color = '#FFFFFF', width = 1))) %>% layout(title = paste('Resultados de las pruebas hechas en México de COVID-19 al', today, sep = " "),
+                         texttemplate = "%{label}: %{value:,}",
+                         insidetextfont = list(color = c("white", "black", "white","black")),
+                         marker = list(colors = c("violet","pink","royalblue3","lightblue"), line = list(color = '#FFFFFF', width = 1))) %>% layout(title = paste('Resultados por genero en México de COVID-19 al', today, sep = " "),
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)); CasosSexoMex_plot
 
 ```
 ## Distribución de defunciones en México
 ```{r, echo = FALSE, fig.align="center"}
-
 Decesos_Mx <- Pos_Mx[-grep("9999-99-99",Pos_Mx$fecha_def),]
-
 NumFallMex <- Decesos_Mx %>% 
   dplyr::filter(value == "Positivo") %>% 
   dplyr::summarise("Decesos acumulados en México" = dplyr::n())
-
 kbl(NumFallMex) %>% 
   kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
-
 Decesos_Mx_St <- ddply(Decesos_Mx, c("state_name"), summarise,
                value = length(value)) %>% 
   left_join(select(df_mxstate, region, state_name),
             by = c("state_name" = "state_name"))
-
 pal_1 <- colorNumeric("Reds", domain = Decesos_Mx_St$value)
-
 mxstate_leaflet(Decesos_Mx_St,
                 pal_1,
                 ~ pal_1(value),
@@ -256,8 +255,8 @@ plot_decesos <- ggplot(Decesos_Mx_2, aes(x = as.Date(fecha_def), y = casos, fill
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
         plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
   scale_x_date(date_breaks = "months" , date_labels = "%b")+
-  annotate(geom="text", x=as.Date("2020-05-10"), y=600, label= c("Ambulatorio =                                ",n_amb), color="red") +
-  annotate(geom="text", x=as.Date("2020-05-10"), y=550, label= c("Hospitalizado =                                  ",n_hosp), color="red"); ggplotly(plot_decesos)
+  annotate(geom="text", x=as.Date("2020-05-25"), y=600, label= c("Ambulatorio =                                ",n_amb), color="red") +
+  annotate(geom="text", x=as.Date("2020-05-25"), y=550, label= c("Hospitalizado =                                  ",n_hosp), color="red"); ggplotly(plot_decesos)
 
 rm(Decesos_Mx_2, sum_decesos, n_amb, n_hosp)
 
@@ -299,7 +298,8 @@ DecesosSexoMex$Tipo_paciente <- factor(DecesosSexoMex$Tipo_paciente, levels = c(
 
 DecesosSexoMex_plot <- plot_ly(DecesosSexoMex, labels = ~Tipo_paciente, values = ~Casos, type = 'pie',
                          textposition = 'inside',
-                         insidetextfont = list(color = '#FFFFFF'),
+                         texttemplate = "%{label}: %{value:,}",
+                         insidetextfont = list(color = c("white", "black", "white","black")),
                          marker = list(colors = c("violet","pink","royalblue3","lightblue"), line = list(color = '#FFFFFF', width = 1))) %>% layout(title = paste('Decesos México de COVID-19 al', today, sep = " "),
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)); DecesosSexoMex_plot
@@ -345,6 +345,7 @@ rm(NumPosTlx, NumNegTlax)
 
 CasosTlax_plot <- plot_ly(CasosTlax, labels = ~Resultado, values = ~Casos, type = 'pie',
                          textposition = 'inside',
+                         texttemplate = "%{label}: %{value:,}",
                          insidetextfont = list(color = '#FFFFFF'),
                          marker = list(colors = colors, line = list(color = '#FFFFFF', width = 1))) %>% layout(title = paste('Resultados de las pruebas hechas en Tlaxcala de COVID-19 al', today, sep = " "),
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
@@ -393,7 +394,8 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
          annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
                                           "<br><b>Ambulatorios:</b>", n_amb),
                             x = "2020-04-25", y = 115, showarrow=F,
-                            font=list(color = "darkgreen")));plot_Casos_Tlx
+                            font=list(color = "darkgreen")),
+         bargap = 0);plot_Casos_Tlx
 
 rm(mn_Tlx_2, n_Tlx, sum_Tlx, n_amb, n_hosp)
 
@@ -445,8 +447,11 @@ rm(NumMujHospTlx, NumMujAmbTlx, NumHomHospTlx, NumHomAmbTlx)
 CasosSexoTlax$Tipo_paciente <- paste(CasosSexoTlax$Sexo, CasosSexoTlax$Paciente)
 
 CasosSexoTlax_plot <- plot_ly(CasosSexoTlax, labels = ~Tipo_paciente, values = ~Casos,
-                              type = 'pie',textposition = 'inside',
-                              insidetextfont = list(color = '#FFFFFF'),
+                              type = 'pie',
+                              textposition = 'inside',
+                              texttemplate = "%{label}: %{value:,}",
+                              insidetextfont = list(color = c("white", "black",
+                                                              "white","black")),
                               marker = list(colors = c("violet","pink","royalblue3","lightblue"),
                                             line = list(color = '#FFFFFF', width = 1))) %>% 
   layout(title = paste('<b>Casos por sexo en Tlaxcala de COVID-19 al</b>', today, sep = " "),
@@ -606,8 +611,13 @@ oct_tlax <- oct_tlax[grep("29",oct_tlax$entidad_res),]
 oct_tlax <- oct_tlax[grep("Positivo", oct_tlax$value),]
 oct_tlax$mes <- rep("Octubre", length(oct_tlax$fecha_actualizacion))
 
-def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax)
-def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre"))
+nov_tlax <- Mex_Data_COVID[grep("-11-", Mex_Data_COVID$fecha_def),]
+nov_tlax <- nov_tlax[grep("29",nov_tlax$entidad_res),]
+nov_tlax <- nov_tlax[grep("Positivo", nov_tlax$value),]
+nov_tlax$mes <- rep("noviembre", length(nov_tlax$fecha_actualizacion))
+
+def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
+def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre"))
 
 Def_edad_Tlx_meses <- ggplot(def_mes_Tlx, aes(x= sexo, y = edad))+
   facet_wrap(~ mes)+
