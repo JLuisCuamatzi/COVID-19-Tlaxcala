@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = T)
 h1 {color: darkred;}
 ```
 
-# 30 de octubre de 2020
+# 31 de octubre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
@@ -41,7 +41,7 @@ library(plotly)
 rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-Mex_Data_COVID <- read.csv(unz(temp, "201030COVID19MEXICO.csv"))
+Mex_Data_COVID <- read.csv(unz(temp, "201031COVID19MEXICO.csv"))
 unlink(temp); rm(temp)
 ```
 
@@ -122,7 +122,7 @@ mn_Mx_Edos <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente", "sexo","state_n
                     casos = length(value))
 
 plot_casos_estados <- ggplot(mn_Mx_Edos, aes(x = as.Date(fecha_sintomas), y = casos, fill = tipo_paciente))+
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity", binwidth = 0) +
   theme_classic()+
   facet_wrap(~state_name, scales = "free") +
   scale_fill_manual("Tipo de paciente", values = c("Hospitalizado" = "green", "Ambulatorio" = "gray")) + 
@@ -133,7 +133,7 @@ plot_casos_estados <- ggplot(mn_Mx_Edos, aes(x = as.Date(fecha_sintomas), y = ca
         axis.title.x = element_text(face = "bold", color = "black", size = 12),
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
         plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
-  scale_x_date(date_breaks = "months" , date_labels = "%b");
+  scale_x_date(date_breaks = "months" , date_labels = "%b")
 
 ggsave("Casos_estados_20201030.jpg",plot_casos_estados, dpi = 500, width = 13, height = 9)
 
@@ -141,7 +141,7 @@ ggsave("Casos_estados_20201030.jpg",plot_casos_estados, dpi = 500, width = 13, h
 
 
 ```{r, echo = F, warning=F}
-mn_Mx_2 <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente", "sexo"), summarise,
+mn_Mx_2 <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente"), summarise,
                            casos = length(value))
 
 sum_pacientes <- aggregate(mn_Mx_2$casos, by=list(Tipo_paciente=mn_Mx_2$tipo_paciente), FUN=sum)
@@ -152,20 +152,30 @@ n_amb <- sum(n_amb$x)
 n_hosp <- sum_pacientes[grep("Hospitalizado", sum_pacientes$Tipo_paciente),]
 n_hosp <- sum(n_hosp$x)
 
-plot_casos <- ggplot(mn_Mx_2, aes(x = as.Date(fecha_sintomas), y = casos, fill = tipo_paciente))+
-  geom_bar(stat = "identity") +
-  theme_classic()+
-  scale_fill_manual("Tipo de paciente", values = c("Hospitalizado" = "green", "Ambulatorio" = "gray")) + 
-  labs(y = "Número de casos", x = "Fecha de síntomas") + 
-  ggtitle("Situación de pacientes")+
-  theme(axis.text.x = element_text(face = "bold", color = "#993333",size = 8, angle = 90),
-        axis.text.y = element_text(face = "bold", color = "blue", size = 10, angle = 45),
-        axis.title.x = element_text(face = "bold", color = "black", size = 12),
-        axis.title.y = element_text(face = "bold", color = "black", size = 12),
-        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
-  scale_x_date(date_breaks = "months" , date_labels = "%b")+
-  annotate(geom="text", x=as.Date("2020-04-30"), y=8000, label= c("Ambulatorio =                                ",n_amb), color="red") +
-  annotate(geom="text", x=as.Date("2020-04-30"), y=7500, label= c("Hospitalizado =                                  ",n_hosp), color="red");ggplotly(plot_casos)
+n_Mx <- sum(mn_Mx_2$casos)
+
+mn_Mx_2$tipo_paciente <- factor(mn_Mx_2$tipo_paciente, levels = c("Hospitalizado", "Ambulatorio"))
+
+plot_Casos_Mx <- plot_ly(mn_Mx_2,
+                          x = ~fecha_sintomas,
+                          y = ~casos,
+                          color = ~tipo_paciente, 
+                          type = 'bar',
+                          colors = c("blue","gray")) %>% 
+  layout(title = ~paste("<b>Casos positivos en México (n = </b>",n_Mx,"<b>)</b>"),
+         titlefont = list(color = 'darkred'),
+         yaxis = list(title = '<b>Casos</b>', linecolor = '#993333', linewidth =2,
+                      tickcolor = '#9933333', tickwidth = 2), 
+         xaxis = list(title = '<b>Fecha de síntomas</b>', type = 'date', 
+                      tickformat = "%d %B <br> %Y",
+                      tickcolor = '#993333', tickwidth = 2, ticklen = 5,
+                      showgrid = F, linecolor = '#993333', linewidth = 2), 
+         barmode = 'stack',
+         annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
+                                          "<br><b>Ambulatorios:</b>", n_amb),
+                            x = "2020-03-25", y = 8150, showarrow=F,
+                            font=list(color = "darkgreen")),
+         bargap = 0);plot_Casos_Mx
 
 rm(mn_Mx_2, sum_pacientes, n_amb, n_hosp)
 
@@ -243,20 +253,30 @@ n_amb <- sum(n_amb$x)
 n_hosp <- sum_decesos[grep("Hospitalizado", sum_decesos$Tipo_paciente),]
 n_hosp <- sum(n_hosp$x)
 
-plot_decesos <- ggplot(Decesos_Mx_2, aes(x = as.Date(fecha_def), y = casos, fill = tipo_paciente))+
-  geom_bar(stat = "identity") +
-  theme_classic()+
-  scale_fill_manual("Tipo de paciente", values = c("Hospitalizado" = "green", "Ambulatorio" = "gray")) + 
-  labs(y = "Número de defunciones", x = "Fecha de defunción")+
-  ggtitle("Fallecimientos en México") + 
-  theme(axis.text.x = element_text(face = "bold", color = "#993333",size = 8, angle = 90),
-        axis.text.y = element_text(face = "bold", color = "blue", size = 10, angle = 45),
-        axis.title.x = element_text(face = "bold", color = "black", size = 12),
-        axis.title.y = element_text(face = "bold", color = "black", size = 12),
-        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
-  scale_x_date(date_breaks = "months" , date_labels = "%b")+
-  annotate(geom="text", x=as.Date("2020-05-25"), y=600, label= c("Ambulatorio =                                ",n_amb), color="red") +
-  annotate(geom="text", x=as.Date("2020-05-25"), y=550, label= c("Hospitalizado =                                  ",n_hosp), color="red"); ggplotly(plot_decesos)
+n_Mx <- sum(Decesos_Mx_2$casos)
+
+Decesos_Mx_2$tipo_paciente <- factor(Decesos_Mx_2$tipo_paciente, levels = c("Hospitalizado", "Ambulatorio"))
+
+plot_Casos_Mx <- plot_ly(Decesos_Mx_2,
+                          x = ~fecha_def,
+                          y = ~casos,
+                          color = ~tipo_paciente, 
+                          type = 'bar',
+                          colors = c("darkblue","darkgray")) %>% 
+  layout(title = ~paste("<b>Fallecimientos en México (n = </b>",n_Mx,"<b>)</b>"),
+         titlefont = list(color = 'darkred'),
+         yaxis = list(title = '<b>Casos</b>', linecolor = '#993333', linewidth =2,
+                      tickcolor = '#9933333', tickwidth = 2), 
+         xaxis = list(title = '<b>Fecha de defunción</b>', type = 'date', 
+                      tickformat = "%d %B <br> %Y",
+                      tickcolor = '#993333', tickwidth = 2, ticklen = 5,
+                      showgrid = F, linecolor = '#993333', linewidth = 2), 
+         barmode = 'stack',
+         annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
+                                          "<br><b>Ambulatorios:</b>", n_amb),
+                            x = "2020-04-20", y = 650, showarrow=F,
+                            font=list(color = "darkgreen")),
+         bargap = 0);plot_Casos_Mx
 
 rm(Decesos_Mx_2, sum_decesos, n_amb, n_hosp)
 
@@ -527,11 +547,9 @@ CasosSexoContla_plot <- plot_ly(CasosSexoContla, labels = ~Tipo_paciente, values
 ``` {r warning=FALSE, echo=FALSE, fig.align="center"}
 Defunciones_Tlax <- Pos_Tlax[-grep("9999-99-99", Pos_Tlax$fecha_def),]
 
-Defunciones_Tlx_2 <- ddply(Defunciones_Tlax, c("municipio_name", "region", "municipio_code"), summarise,
-                value = length(value))
+Defunciones_Tlx_2 <- ddply(Defunciones_Tlax, c("municipio_name", "region", "municipio_code"), summarise, value = length(value))
 
 Defunciones_Tlx_2$state_name <- rep("Tlaxcala",length(Defunciones_Tlx_2$value))
-
 
 pal_df_Tlax <- colorNumeric("Reds", domain = Defunciones_Tlx_2$value)
 
@@ -550,23 +568,40 @@ mxmunicipio_leaflet(Defunciones_Tlx_2,
 Defunciones_Tlx_2 <- ddply(Defunciones_Tlax, c("fecha_def", "tipo_paciente"), summarise,
                   casos = length(value))
 
+sum_decesos <- aggregate(Defunciones_Tlx_2$casos,
+                         by=list(Tipo_paciente=Defunciones_Tlx_2$tipo_paciente), FUN=sum)
+
+n_amb <- sum_decesos[grep("Ambulatorio", sum_decesos$Tipo_paciente),]
+n_amb <- sum(n_amb$x)
+
+n_hosp <- sum_decesos[grep("Hospitalizado", sum_decesos$Tipo_paciente),]
+n_hosp <- sum(n_hosp$x)
+
 n_def_Tlx <- sum(Defunciones_Tlx_2$casos)
 
-plot_Defunciones_Tlx <- ggplot(Defunciones_Tlx_2, aes(x = as.Date(fecha_def), y = casos, fill = tipo_paciente))+
-  geom_bar(stat = "identity") + 
-  theme_classic()+
-  scale_fill_manual("Tipo de paciente", values = c("Hospitalizado" = "green", "Ambulatorio" = "gray"))+
-  labs(y = "Número de defunciones", x = "Fecha de defunción") + 
-  ggtitle("Defunciones en Tlaxcala") +
-  theme(axis.text.x = element_text(face = "bold", color = "#993333",size = 8, angle = 90),
-        axis.text.y = element_text(face = "bold", color = "blue", size = 10, angle = 45),
-        axis.title.x = element_text(face = "bold", color = "black", size = 12),
-        axis.title.y = element_text(face = "bold", color = "black", size = 12),
-        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5)) +
-  scale_x_date(date_breaks = "months" , date_labels = "%b") +
-  annotate(geom="text", x=as.Date("2020-05-01"), y=25, label= c("n=            ",n_def_Tlx), color="red"); ggplotly(plot_Defunciones_Tlx)
+Defunciones_Tlx_2$tipo_paciente <- factor(Defunciones_Tlx_2$tipo_paciente, levels = c("Hospitalizado", "Ambulatorio"))
 
-
+plot_def_Tlx <- plot_ly(Defunciones_Tlx_2,
+                          x = ~fecha_def,
+                          y = ~casos,
+                          color = ~tipo_paciente, 
+                          type = 'bar',
+                          colors = c("darkblue","darkgray")) %>% 
+  layout(title = ~paste("<b>Fallecimientos en Tlaxcala (n = </b>",n_def_Tlx,"<b>)</b>"),
+         titlefont = list(color = 'darkred'),
+         yaxis = list(title = '<b>Casos</b>', linecolor = '#993333', linewidth =2,
+                      tickcolor = '#9933333', tickwidth = 2), 
+         xaxis = list(title = '<b>Fecha de defunción</b>', type = 'date', 
+                      tickformat = "%d %B <br> %Y",
+                      tickcolor = '#993333', tickwidth = 2, ticklen = 5,
+                      showgrid = F, linecolor = '#993333', linewidth = 2), 
+         barmode = 'stack',
+         annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
+                                          "<br><b>Ambulatorios:</b>", n_amb),
+                            x = "2020-05-20", y = 20, showarrow=F,
+                            font=list(color = "darkgreen")),
+         bargap = 0); plot_def_Tlx
+rm(Defunciones_Tlx_2, n_def_Tlx, n_hosp, n_amb)
 
 ```
 
@@ -618,19 +653,28 @@ nov_tlax$mes <- rep("noviembre", length(nov_tlax$fecha_actualizacion))
 
 def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
 def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre"))
+rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
 
-Def_edad_Tlx_meses <- ggplot(def_mes_Tlx, aes(x= sexo, y = edad))+
-  facet_wrap(~ mes)+
-  geom_boxplot(notch = T, outlier.colour="red", outlier.shape=8,outlier.size=4) +
-  ggtitle("Defunciones por sexo y edad en Tlaxcala") +
-  theme_classic()+ 
-  labs(y = "Edad", x = "Sexo")+
-  theme(axis.text.x = element_text(face = "bold", color = "#993333",size = 11, angle = 0),
-        axis.text.y = element_text(face = "bold", color = "blue", size = 11, angle = 0),
-        axis.title.x = element_text(face = "bold", color = "black", size = 12),
-        axis.title.y = element_text(face = "bold", color = "black", size = 12),
-        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5),
-        panel.spacing = unit(2, "lines")); ggplotly(Def_edad_Tlx_meses)
+Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>% 
+  add_trace(x =~mes[def_mes_Tlx$sexo == 'Hombre'],
+            y =~edad[def_mes_Tlx$sexo == 'Hombre'],
+            legendgroup = 'Hombre',
+            scalegroup = 'Hombre',
+            name = 'Hombre',
+            box = list(visible = T),
+            meanline = list(visible = T),
+            color = I("blue")) %>%
+  add_trace(x =~mes[def_mes_Tlx$sexo == 'Mujer'],
+            y =~edad[def_mes_Tlx$sexo == 'Mujer'],
+            legendgroup = 'Mujer',
+            scalegroup = 'Mujer',
+            name = 'Mujer',
+            box = list(visible = T),
+            meanline = list(visible = T),
+            color = I("pink")) %>%
+  layout(yaxis = list(zeroline = F),boxmode = 'group',
+         title = ~paste("<b>Distribución de fallecimientos por sexo y edad en Tlaxcala</b>"),
+         titlefont = list(color = 'darkred'));Def_edad_Tlx_meses_plot
 
 
 ```
