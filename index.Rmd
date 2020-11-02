@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = T)
 h1 {color: darkred;}
 ```
 
-# 31 de octubre de 2020
+# 01 de noviembre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
@@ -41,7 +41,7 @@ library(plotly)
 rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-Mex_Data_COVID <- read.csv(unz(temp, "201031COVID19MEXICO.csv"))
+Mex_Data_COVID <- read.csv(unz(temp, "201101COVID19MEXICO.csv"))
 unlink(temp); rm(temp)
 ```
 
@@ -97,8 +97,10 @@ CasosMex_plot <- plot_ly(CasosMex, labels = ~Resultado, values = ~Casos, type = 
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE));CasosMex_plot
 ```
-## Distribución de casos positivos en México
-```{r, echo = F}
+
+## Casos en México
+
+```{r, echo = F, warning=F}
 Pos_Mx <- Mex_Data_COVID[grep("Positivo", Mex_Data_COVID$clasificacion_final),]
 
 mn_Mx <- ddply(Pos_Mx, c("state_name"), summarise,
@@ -220,8 +222,10 @@ CasosSexoMex_plot <- plot_ly(CasosSexoMex, labels = ~Tipo_paciente, values = ~Ca
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)); CasosSexoMex_plot
 
 ```
+
 ## Distribución de defunciones en México
-```{r, echo = FALSE, fig.align="center"}
+
+```{r, echo = FALSE, fig.align="center", warning=F}
 Decesos_Mx <- Pos_Mx[-grep("9999-99-99",Pos_Mx$fecha_def),]
 NumFallMex <- Decesos_Mx %>% 
   dplyr::filter(value == "Positivo") %>% 
@@ -538,6 +542,7 @@ CasosSexoContla$Tipo_paciente <- paste(CasosSexoContla$Sexo, CasosSexoContla$Pac
 
 CasosSexoContla_plot <- plot_ly(CasosSexoContla, labels = ~Tipo_paciente, values = ~Casos, type = 'pie',
                          textposition = 'inside',
+                         texttemplate = "%{label}: %{value:,}",
                          insidetextfont = list(color = '#FFFFFF'),
                          marker = list(colors = c("royalblue3","lightblue","violet","pink"), line = list(color = '#FFFFFF', width = 1))) %>% layout(title = paste('Casos por sexo en Contla de Juan Cuamatzi de COVID-19 al', today, sep = " "),
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
@@ -598,7 +603,7 @@ plot_def_Tlx <- plot_ly(Defunciones_Tlx_2,
          barmode = 'stack',
          annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
                                           "<br><b>Ambulatorios:</b>", n_amb),
-                            x = "2020-05-20", y = 20, showarrow=F,
+                            x = "2020-05-20", y = 30, showarrow=F,
                             font=list(color = "darkgreen")),
          bargap = 0); plot_def_Tlx
 rm(Defunciones_Tlx_2, n_def_Tlx, n_hosp, n_amb)
@@ -656,6 +661,11 @@ def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo",
 rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
 
 Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>% 
+  layout(boxmode = 'group',
+         title = ~paste("<b>Distribución de fallecimientos por sexo y edad en Tlaxcala</b>"),
+         titlefont = list(color = 'darkred'),
+         yaxis = list(title = "Edad"),
+         xaxis = list(title = "Mes")) %>% 
   add_trace(x =~mes[def_mes_Tlx$sexo == 'Hombre'],
             y =~edad[def_mes_Tlx$sexo == 'Hombre'],
             legendgroup = 'Hombre',
@@ -671,10 +681,7 @@ Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>%
             name = 'Mujer',
             box = list(visible = T),
             meanline = list(visible = T),
-            color = I("pink")) %>%
-  layout(yaxis = list(zeroline = F),boxmode = 'group',
-         title = ~paste("<b>Distribución de fallecimientos por sexo y edad en Tlaxcala</b>"),
-         titlefont = list(color = 'darkred'));Def_edad_Tlx_meses_plot
+            color = I("pink"));Def_edad_Tlx_meses_plot
 
 
 ```
