@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = T)
 h1 {color: darkred;}
 ```
 
-# 01 de noviembre de 2020
+# 02 de noviembre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
@@ -41,7 +41,7 @@ library(plotly)
 rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-Mex_Data_COVID <- read.csv(unz(temp, "201101COVID19MEXICO.csv"))
+Mex_Data_COVID <- read.csv(unz(temp, "201102COVID19MEXICO.csv"))
 unlink(temp); rm(temp)
 ```
 
