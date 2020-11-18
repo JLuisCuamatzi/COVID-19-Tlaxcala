@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = T)
 h1 {color: darkred;}
 ```
 
-# 02 de noviembre de 2020
+# 17 de noviembre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
@@ -41,8 +41,12 @@ library(plotly)
 rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-Mex_Data_COVID <- read.csv(unz(temp, "201102COVID19MEXICO.csv"))
-unlink(temp); rm(temp)
+date <- Sys.Date()
+date <- gsub("-", "", date)
+date <- substring(date, 3)
+database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
+Mex_Data_COVID <- read.csv(unz(temp, database_title))
+unlink(temp); rm(temp, date, database_title)
 ```
 
 ``` {r include=FALSE, warning=FALSE, fig.align="center"}
@@ -136,8 +140,31 @@ plot_casos_estados <- ggplot(mn_Mx_Edos, aes(x = as.Date(fecha_sintomas), y = ca
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
         plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
   scale_x_date(date_breaks = "months" , date_labels = "%b")
+title_plot_cases <- paste("Casos_estados_", today, ".jpg", sep = "")
+ggsave(title_plot_cases, plot_casos_estados, dpi = 500, width = 13, height = 9)
+rm(mn_Mx_Edos)
 
-ggsave("Casos_estados_20201030.jpg",plot_casos_estados, dpi = 500, width = 13, height = 9)
+mn_Def_Mx_Edos <- ddply(Pos_Mx, c("fecha_def", "tipo_paciente", "sexo","state_name"), summarise,
+                    casos = length(value))
+
+plot_defunciones_estados <- ggplot(mn_Def_Mx_Edos, aes(x = as.Date(fecha_def), y = casos, fill = tipo_paciente))+
+  geom_bar(stat = "identity", binwidth = 0) +
+  theme_classic()+
+  facet_wrap(~state_name, scales = "free") +
+  scale_fill_manual("Tipo de paciente", values = c("Hospitalizado" = "green", "Ambulatorio" = "gray")) + 
+  labs(y = "Número de defunciones", x = "Fecha de defuncións") + 
+  ggtitle("Defunciones por COVID-19 en los estados")+
+  theme(axis.text.x = element_text(face = "bold", color = "#993333",size = 8, angle = 90),
+        axis.text.y = element_text(face = "bold", color = "blue", size = 10, angle = 45),
+        axis.title.x = element_text(face = "bold", color = "black", size = 12),
+        axis.title.y = element_text(face = "bold", color = "black", size = 12),
+        plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
+  scale_x_date(date_breaks = "months" , date_labels = "%b")
+
+title_plot_def <- paste("Defunciones_estados_", today, ".jpg", sep = "")
+
+ggsave(title_plot_def, plot_defunciones_estados, dpi = 500, width = 13, height = 9)
+rm(mn_Def_Mx_Edos)
 
 ```
 
@@ -164,7 +191,7 @@ plot_Casos_Mx <- plot_ly(mn_Mx_2,
                           color = ~tipo_paciente, 
                           type = 'bar',
                           colors = c("blue","gray")) %>% 
-  layout(title = ~paste("<b>Casos positivos en México (n = </b>",n_Mx,"<b>)</b>"),
+  layout(title = ~paste("<b>Casos positivos acumulados en México (n = </b>",n_Mx,"<b>)</b>"),
          titlefont = list(color = 'darkred'),
          yaxis = list(title = '<b>Casos</b>', linecolor = '#993333', linewidth =2,
                       tickcolor = '#9933333', tickwidth = 2), 
@@ -423,7 +450,6 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
 
 rm(mn_Tlx_2, n_Tlx, sum_Tlx, n_amb, n_hosp)
 
-
 # Mujeres
 NumMujHospTlx <- Mex_Data_COVID %>% 
   dplyr::filter(state_name == "Tlaxcala",
@@ -654,7 +680,7 @@ oct_tlax$mes <- rep("Octubre", length(oct_tlax$fecha_actualizacion))
 nov_tlax <- Mex_Data_COVID[grep("-11-", Mex_Data_COVID$fecha_def),]
 nov_tlax <- nov_tlax[grep("29",nov_tlax$entidad_res),]
 nov_tlax <- nov_tlax[grep("Positivo", nov_tlax$value),]
-nov_tlax$mes <- rep("noviembre", length(nov_tlax$fecha_actualizacion))
+nov_tlax$mes <- rep("Noviembre", length(nov_tlax$fecha_actualizacion))
 
 def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
 def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre"))
@@ -682,6 +708,67 @@ Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>%
             box = list(visible = T),
             meanline = list(visible = T),
             color = I("pink"));Def_edad_Tlx_meses_plot
+
+
+```
+
+# Casos activos en México
+
+```{r warning=FALSE, echo=FALSE, fig.align="center"}
+# Últimos 14 días (Casos activos)
+
+active_days <- today-15
+
+activos_Mx <- Pos_Mx %>% 
+  dplyr::filter(fecha_sintomas > active_days)
+
+activos_Tlx <- Pos_Mx %>% 
+  dplyr::filter(fecha_sintomas > active_days,
+                state_name == "Tlaxcala")
+
+mnAct_Mx <- ddply(activos_Mx, c("state_name"), summarise,
+               value = length(value)) %>% 
+  left_join(select(df_mxstate, region, state_name),
+            by = c("state_name" = "state_name"))
+
+pal <- colorNumeric("Blues", domain = mnAct_Mx$value)
+
+# Activos México
+
+mxstate_leaflet(mnAct_Mx,
+                pal,
+                ~ pal(value),
+                ~sprintf("Estado: %s<br/>Casos activos: %s",
+                         state_name, value)) %>% 
+  addLegend(position = "bottomleft", pal = pal, values = mnAct_Mx$value) %>%
+  addProviderTiles("CartoDB.Positron")
+
+# Activos Tlaxcala
+
+
+#activos_Tlx <- activos_Tlx %>%
+#  left_join(select(Tlx_municipio, region, municipio_code, municipio_name),
+#            by = c("municipio_res" = "municipio_code"))
+#activos_Tlx$municipio_code <- activos_Tlx$municipio_res
+
+#mnAct_Tlx <- ddply(activos_Tlx, c("municipio_name","region","municipio_code"), summarise,
+ #               value = length(value))
+#mnAct_Tlx$state_name <- rep("Tlaxcala",length(mnAct_Tlx))
+#pal <- colorNumeric("Reds", domain = mnAct_Tlx$value)
+
+#mxmunicipio_leaflet(mnAct_Tlx, 
+ #                   pal,
+  #                  ~ pal(value),
+   #                 ~ sprintf("Estado: %s<br/>Municipio : %s<br/>Casos activos: %s",
+    #                          state_name, municipio_name, value),
+     #               lng = -98.16957,
+      #              lat = 19.35029, mapzoom = 9)%>%
+  #addLegend(position = "bottomright", pal = pal,
+   #         values = mnAct_Tlx$value) %>%
+  #addProviderTiles("CartoDB.Positron")
+
+#box plot para casos activos por estado
+
 
 
 ```
