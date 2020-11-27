@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = T)
 h1 {color: darkred;}
 ```
 
-# 19 de noviembre de 2020
+# 26 de noviembre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
