@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = T)
 h1 {color: darkred;}
 ```
 
-# 29 de noviembre de 2020
+# 07 de diciembre de 2020
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
@@ -42,9 +42,9 @@ rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
 date <- Sys.Date()
-date <- gsub("-", "", date)
-date <- substring(date, 3)
+date <- substring(gsub("-", "", date),3)
 database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
+#database_title <- paste("201202COVID19MEXICO.csv")
 Mex_Data_COVID <- read.csv(unz(temp, database_title))
 unlink(temp); rm(temp, date, database_title)
 ```
@@ -106,6 +106,39 @@ CasosMex_plot <- plot_ly(CasosMex, labels = ~Resultado, values = ~Casos, type = 
 
 ```{r, echo = F, warning=F}
 Pos_Mx <- Mex_Data_COVID[grep("Positivo", Mex_Data_COVID$clasificacion_final),]
+Pos_Mx_Enero <- Pos_Mx[grep("-01-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Febrero <- Pos_Mx[grep("-02-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Marzo <- Pos_Mx[grep("-03-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Abril <- Pos_Mx[grep("-04-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Mayo <- Pos_Mx[grep("-05-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Junio <- Pos_Mx[grep("-06-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Julio <- Pos_Mx[grep("-07-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Agosto <- Pos_Mx[grep("-08-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Septiembre <- Pos_Mx[grep("-09-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Octubre <- Pos_Mx[grep("-10-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Noviembre <- Pos_Mx[grep("-11-",Pos_Mx$fecha_sintomas),]
+Pos_Mx_Diciembre <- Pos_Mx[grep("-12-",Pos_Mx$fecha_sintomas),]
+
+Pos_Mx_Enero$mes <- rep("Enero", length(Pos_Mx_Enero$fecha_actualizacion))
+Pos_Mx_Febrero$mes <- rep("Febrero", length(Pos_Mx_Febrero$fecha_actualizacion))
+Pos_Mx_Marzo$mes <- rep("Marzo", length(Pos_Mx_Marzo$fecha_actualizacion))
+Pos_Mx_Abril$mes <- rep("Abril", length(Pos_Mx_Abril$fecha_actualizacion))
+Pos_Mx_Mayo$mes <- rep("Mayo", length(Pos_Mx_Mayo$fecha_actualizacion))
+Pos_Mx_Junio$mes <- rep("Junio", length(Pos_Mx_Junio$fecha_actualizacion))
+Pos_Mx_Julio$mes <- rep("Julio", length(Pos_Mx_Julio$fecha_actualizacion))
+Pos_Mx_Agosto$mes <- rep("Agosto", length(Pos_Mx_Agosto$fecha_actualizacion))
+Pos_Mx_Septiembre$mes <- rep("Septiembre", length(Pos_Mx_Septiembre$fecha_actualizacion))
+Pos_Mx_Octubre$mes <- rep("Octubre", length(Pos_Mx_Octubre$fecha_actualizacion))
+Pos_Mx_Noviembre$mes <- rep("Noviembre", length(Pos_Mx_Noviembre$fecha_actualizacion))
+Pos_Mx_Diciembre$mes <- rep("Diciembre", length(Pos_Mx_Diciembre$fecha_actualizacion))
+Pos_Mx <- bind_rows(Pos_Mx_Enero, Pos_Mx_Febrero, Pos_Mx_Marzo, Pos_Mx_Abril,
+                    Pos_Mx_Mayo, Pos_Mx_Junio, Pos_Mx_Julio, Pos_Mx_Agosto,
+                    Pos_Mx_Septiembre, Pos_Mx_Octubre, Pos_Mx_Noviembre,
+                    Pos_Mx_Diciembre)
+rm(Pos_Mx_Enero, Pos_Mx_Febrero, Pos_Mx_Marzo, Pos_Mx_Abril,
+   Pos_Mx_Mayo, Pos_Mx_Junio, Pos_Mx_Julio, Pos_Mx_Agosto,
+   Pos_Mx_Septiembre, Pos_Mx_Octubre, Pos_Mx_Noviembre,
+   Pos_Mx_Diciembre)
 
 mn_Mx <- ddply(Pos_Mx, c("state_name"), summarise,
                value = length(value)) %>% 
@@ -682,9 +715,14 @@ nov_tlax <- nov_tlax[grep("29",nov_tlax$entidad_res),]
 nov_tlax <- nov_tlax[grep("Positivo", nov_tlax$value),]
 nov_tlax$mes <- rep("Noviembre", length(nov_tlax$fecha_actualizacion))
 
-def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
-def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre"))
-rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax)
+dic_tlax <- Mex_Data_COVID[grep("-12-", Mex_Data_COVID$fecha_def),]
+dic_tlax <- dic_tlax[grep("29",dic_tlax$entidad_res),]
+dic_tlax <- dic_tlax[grep("Positivo", dic_tlax$value),]
+dic_tlax$mes <- rep("Diciembre", length(dic_tlax$fecha_actualizacion))
+
+def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax)
+def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"))
+rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax)
 
 Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>% 
   layout(boxmode = 'group',
