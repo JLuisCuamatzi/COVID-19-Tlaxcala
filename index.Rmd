@@ -10,15 +10,16 @@ knitr::opts_chunk$set(echo = T)
 
 ```
 
-``` {css, echo = F}
+``` {css Colors, echo = F}
 h1 {color: darkred;}
+h2 {color: blue;}
 ```
 
-# 07 de diciembre de 2020
+# Datos al `r Sys.Date()`
 
 ## Los datos se obtuvieron del portal del [Gobierno Federal](http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip)
 
-```{r, include=FALSE, warning=FALSE, fig.align="center"}
+```{r Libraries, include=FALSE, warning=FALSE, fig.align="center"}
 # Loading libraries
 
 library(tidyr)
@@ -44,12 +45,12 @@ download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/dato
 date <- Sys.Date()
 date <- substring(gsub("-", "", date),3)
 database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
-#database_title <- paste("201202COVID19MEXICO.csv")
+database_title <- paste("201212COVID19MEXICO.csv")
 Mex_Data_COVID <- read.csv(unz(temp, database_title))
 unlink(temp); rm(temp, date, database_title)
 ```
 
-``` {r include=FALSE, warning=FALSE, fig.align="center"}
+``` {r Asignando casos, include=FALSE, warning=FALSE, fig.align="center"}
 # Datos
 
 Mex_Data_COVID$ENTIDAD_RES <- sprintf("%02d", as.numeric(Mex_Data_COVID$ENTIDAD_RES))
@@ -77,7 +78,7 @@ Mex_Data_COVID$sexo[Mex_Data_COVID$sexo == "1"] <- "Mujer"
 Mex_Data_COVID$value <- Mex_Data_COVID$clasificacion_final
 ```
 
-```{r, echo = F, warning=F}
+```{r Pos/Neg, echo = F, warning=F}
 NumPosMex <- Mex_Data_COVID %>% 
   dplyr::filter(clasificacion_final == "Positivo") %>% 
   dplyr::summarise("Casos" = dplyr::n())
@@ -104,7 +105,7 @@ CasosMex_plot <- plot_ly(CasosMex, labels = ~Resultado, values = ~Casos, type = 
 
 ## Casos en México
 
-```{r, echo = F, warning=F}
+```{r Mapa Mx, echo = F, warning=F}
 Pos_Mx <- Mex_Data_COVID[grep("Positivo", Mex_Data_COVID$clasificacion_final),]
 Pos_Mx_Enero <- Pos_Mx[grep("-01-",Pos_Mx$fecha_sintomas),]
 Pos_Mx_Febrero <- Pos_Mx[grep("-02-",Pos_Mx$fecha_sintomas),]
@@ -156,7 +157,7 @@ mxstate_leaflet(mn_Mx,
 
 ```
 
-```{r, echo = F, warning=F}
+```{r Estados-Mx, echo = F, warning=F}
 mn_Mx_Edos <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente", "sexo","state_name"), summarise,
                     casos = length(value))
 
@@ -202,7 +203,7 @@ rm(mn_Def_Mx_Edos)
 ```
 
 
-```{r, echo = F, warning=F}
+```{r Casos-Mx, echo = F, warning=F}
 mn_Mx_2 <- ddply(Pos_Mx, c("fecha_sintomas", "tipo_paciente"), summarise,
                            casos = length(value))
 
@@ -226,18 +227,49 @@ plot_Casos_Mx <- plot_ly(mn_Mx_2,
                           colors = c("blue","gray")) %>% 
   layout(title = ~paste("<b>Casos positivos acumulados en México (n = </b>",n_Mx,"<b>)</b>"),
          titlefont = list(color = 'darkred'),
-         yaxis = list(title = '<b>Casos</b>', linecolor = '#993333', linewidth =2,
-                      tickcolor = '#9933333', tickwidth = 2), 
-         xaxis = list(title = '<b>Fecha de síntomas</b>', type = 'date', 
+         yaxis = list(title = '<b>Casos</b>',
+                      linecolor = '#993333',
+                      linewidth =2,
+                      tickcolor = '#9933333',
+                      tickwidth = 2), 
+         xaxis = list(title = '<b>Fecha de síntomas</b>',
+                      type = 'date', 
                       tickformat = "%d %B <br> %Y",
-                      tickcolor = '#993333', tickwidth = 2, ticklen = 5,
-                      showgrid = F, linecolor = '#993333', linewidth = 2), 
+                      tickcolor = '#993333',
+                      tickwidth = 2,
+                      ticklen = 5,
+                      showgrid = F,
+                      linecolor = '#993333',
+                      linewidth = 2), 
          barmode = 'stack',
          annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
                                           "<br><b>Ambulatorios:</b>", n_amb),
-                            x = "2020-03-25", y = 8150, showarrow=F,
+                            x = "2020-03-10",
+                            y = 11000,
+                            showarrow=F,
                             font=list(color = "darkgreen")),
-         bargap = 0);plot_Casos_Mx
+         bargap = 0,
+         shapes = list(
+           list(type = "rect",
+                fillcolor = "red",
+                line = list(color = "red"),
+                opacity = 0.2,
+                x0 = today - 15,
+                x1 = today,
+                xref = "x",
+                y0 = min(mn_Mx_2$casos),
+                y1 = 12500,
+                yref = "y"),
+           list(type = "rect",
+                fillcolor = "pink",
+                line = list(color = "pink"),
+                opacity = 0.25,
+                x0 = "2020-03-13",
+                x1 = "2020-09-13",
+                xref = "x",
+                y0 = min(mn_Mx_2$casos),
+                y1 = 10000,
+                yref = "y")));plot_Casos_Mx
 
 rm(mn_Mx_2, sum_pacientes, n_amb, n_hosp)
 
@@ -285,7 +317,7 @@ CasosSexoMex_plot <- plot_ly(CasosSexoMex, labels = ~Tipo_paciente, values = ~Ca
 
 ## Distribución de defunciones en México
 
-```{r, echo = FALSE, fig.align="center", warning=F}
+```{r Defunciones-Mx, echo = FALSE, fig.align="center", warning=F}
 Decesos_Mx <- Pos_Mx[-grep("9999-99-99",Pos_Mx$fecha_def),]
 NumFallMex <- Decesos_Mx %>% 
   dplyr::filter(value == "Positivo") %>% 
@@ -340,7 +372,28 @@ plot_Casos_Mx <- plot_ly(Decesos_Mx_2,
                                           "<br><b>Ambulatorios:</b>", n_amb),
                             x = "2020-04-20", y = 650, showarrow=F,
                             font=list(color = "darkgreen")),
-         bargap = 0);plot_Casos_Mx
+         bargap = 0,
+         shapes = list(
+           list(type = "rect",
+                fillcolor = "red",
+                line = list(color = "red"),
+                opacity = 0.2,
+                x0 = today - 15,
+                x1 = today,
+                xref = "x",
+                y0 = min(Decesos_Mx_2$casos),
+                y1 = 1000,
+                yref = "y"),
+           list(type = "rect",
+                fillcolor = "pink",
+                line = list(color = "pink"),
+                opacity = 0.25,
+                x0 = "2020-03-28",
+                x1 = "2020-10-09",
+                xref = "x",
+                y0 = min(Decesos_Mx_2$casos),
+                y1 = 1000,
+                yref = "y")));plot_Casos_Mx
 
 rm(Decesos_Mx_2, sum_decesos, n_amb, n_hosp)
 
@@ -392,7 +445,7 @@ DecesosSexoMex_plot <- plot_ly(DecesosSexoMex, labels = ~Tipo_paciente, values =
 
 # COVID-19 Tlaxcala
 
-```{r, include=FALSE, fig.align="center"}
+```{r Tlaxcala-database, include=FALSE, fig.align="center"}
 Tlx_COVID <- Mex_Data_COVID[Mex_Data_COVID$entidad_res == 29,]
 # A partir de la librería mxmaps, obtener datos de municipios de Tlaxcala
 Tlx_municipio <- df_mxmunicipio[df_mxmunicipio$state_code == 29,] # recordar que el código de Tlax es 29
@@ -403,7 +456,7 @@ Tlx_COVID <- Tlx_COVID %>%
 rm(Tlx_municipio)
 ```
 
-```{r, include=FALSE, fig.align="center"}
+```{r Tlax-Pos, include=FALSE, fig.align="center"}
 Pos_Tlax <- Tlx_COVID[grep("Positivo", Tlx_COVID$value),]
 names(Pos_Tlax)[names(Pos_Tlax) == "municipio_res"] <- "municipio_code"
 
@@ -411,7 +464,7 @@ mn_Tlx <- ddply(Pos_Tlax, c("municipio_name","region","municipio_code"), summari
                 value = length(value))
 ```
 
-```{r, warning=FALSE, echo=FALSE, fig.align="center"}
+```{r Mapa Tlax, warning=FALSE, echo=FALSE, fig.align="center"}
 NumPosTlx <- Mex_Data_COVID %>% 
   dplyr::filter(value == "Positivo",
                 state_name == "Tlaxcala") %>% 
@@ -479,7 +532,28 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
                                           "<br><b>Ambulatorios:</b>", n_amb),
                             x = "2020-04-25", y = 115, showarrow=F,
                             font=list(color = "darkgreen")),
-         bargap = 0);plot_Casos_Tlx
+         bargap = 0,
+         shapes = list(
+           list(type = "rect",
+                fillcolor = "red",
+                line = list(color = "red"),
+                opacity = 0.2,
+                x0 = today - 15,
+                x1 = today,
+                xref = "x",
+                y0 = 0,
+                y1 = 140,
+                yref = "y"),
+           list(type = "rect",
+                fillcolor = "pink",
+                line = list(color = "pink"),
+                opacity = 0.25,
+                x0 = "2020-04-20",
+                x1 = "2020-09-27",
+                xref = "x",
+                y0 = 0,
+                y1 = 140,
+                yref = "y")));plot_Casos_Tlx
 
 rm(mn_Tlx_2, n_Tlx, sum_Tlx, n_amb, n_hosp)
 
@@ -546,7 +620,7 @@ rm(CasosSexoTlax)
 ```
 
 ## Distribución de casos por municipio en Tlaxcala
-```{r, warning=FALSE, echo=FALSE, fig.align="center"}
+```{r Municipios-Tlx, warning=FALSE, echo=FALSE, fig.align="center"}
 
 NumPosCtl <- Tlx_COVID %>% 
   dplyr::filter(municipio_name == "Contla de Juan Cuamatzi",
@@ -608,7 +682,7 @@ CasosSexoContla_plot <- plot_ly(CasosSexoContla, labels = ~Tipo_paciente, values
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)); CasosSexoContla_plot
 ```
 
-``` {r warning=FALSE, echo=FALSE, fig.align="center"}
+``` {r Defunciones-Tlx, warning=FALSE, echo=FALSE, fig.align="center"}
 Defunciones_Tlax <- Pos_Tlax[-grep("9999-99-99", Pos_Tlax$fecha_def),]
 
 Defunciones_Tlx_2 <- ddply(Defunciones_Tlax, c("municipio_name", "region", "municipio_code"), summarise, value = length(value))
@@ -662,14 +736,35 @@ plot_def_Tlx <- plot_ly(Defunciones_Tlx_2,
          barmode = 'stack',
          annotations = list(text = ~paste("<b>Hospitalizados:</b>", n_hosp,
                                           "<br><b>Ambulatorios:</b>", n_amb),
-                            x = "2020-05-20", y = 30, showarrow=F,
+                            x = "2020-05-20", y = 22, showarrow=F,
                             font=list(color = "darkgreen")),
-         bargap = 0); plot_def_Tlx
+         bargap = 0,
+         shapes = list(
+           list(type = "rect",
+                fillcolor = "red",
+                line = list(color = "red"),
+                opacity = 0.2,
+                x0 = today - 15,
+                x1 = today,
+                xref = "x",
+                y0 = 0,
+                y1 = 25,
+                yref = "y"),
+           list(type = "rect",
+                fillcolor = "pink",
+                line = list(color = "pink"),
+                opacity = 0.25,
+                x0 = "2020-04-08",
+                x1 = "2020-09-13",
+                xref = "x",
+                y0 = 0,
+                y1 = 25,
+                yref = "y"))); plot_def_Tlx
 rm(Defunciones_Tlx_2, n_def_Tlx, n_hosp, n_amb)
 
 ```
 
-```{r, warning=FALSE, echo=FALSE, fig.align="center"}
+```{r Boxplot-Tlx, warning=FALSE, echo=FALSE, fig.align="center"}
 marzo_tlax <- Mex_Data_COVID[grep("-03-", Mex_Data_COVID$fecha_def),]
 marzo_tlax <- marzo_tlax[grep("29",marzo_tlax$entidad_res),]
 marzo_tlax <- marzo_tlax[grep("Positivo", marzo_tlax$value),]
@@ -752,8 +847,8 @@ Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>%
 
 # Casos activos en México
 
-```{r warning=FALSE, echo=FALSE, fig.align="center"}
-# Últimos 14 días (Casos activos)
+```{r Activos-Mx, warning=FALSE, echo=FALSE, fig.align="center"}
+# Últimos 15 días (Casos activos)
 
 active_days <- today-15
 
