@@ -42,17 +42,18 @@ library(plotly)
 rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-date <- Sys.Date()
-date <- substring(gsub("-", "", date),3)
-database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
-database_title <- paste("201212COVID19MEXICO.csv")
+#date <- Sys.Date()
+#date <- substring(gsub("-", "", date),3)
+
+#database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
+
+database_title <- paste("201217COVID19MEXICO.csv")
 Mex_Data_COVID <- read.csv(unz(temp, database_title))
 unlink(temp); rm(temp, date, database_title)
 ```
 
 ``` {r Asignando casos, include=FALSE, warning=FALSE, fig.align="center"}
 # Datos
-
 Mex_Data_COVID$ENTIDAD_RES <- sprintf("%02d", as.numeric(Mex_Data_COVID$ENTIDAD_RES))
 Mex_Data_COVID$MUNICIPIO_RES <- sprintf("%03d", as.numeric(Mex_Data_COVID$MUNICIPIO_RES))
 
@@ -174,6 +175,7 @@ plot_casos_estados <- ggplot(mn_Mx_Edos, aes(x = as.Date(fecha_sintomas), y = ca
         axis.title.y = element_text(face = "bold", color = "black", size = 12),
         plot.title = element_text(face = "bold", color = "red", size = 14, hjust = 0.5))+
   scale_x_date(date_breaks = "months" , date_labels = "%b")
+
 title_plot_cases <- paste("Casos_estados_", today, ".jpg", sep = "")
 ggsave(title_plot_cases, plot_casos_estados, dpi = 500, width = 13, height = 9)
 rm(mn_Mx_Edos)
@@ -382,7 +384,7 @@ plot_Casos_Mx <- plot_ly(Decesos_Mx_2,
                 x1 = today,
                 xref = "x",
                 y0 = min(Decesos_Mx_2$casos),
-                y1 = 1000,
+                y1 = 800,
                 yref = "y"),
            list(type = "rect",
                 fillcolor = "pink",
@@ -392,7 +394,7 @@ plot_Casos_Mx <- plot_ly(Decesos_Mx_2,
                 x1 = "2020-10-09",
                 xref = "x",
                 y0 = min(Decesos_Mx_2$casos),
-                y1 = 1000,
+                y1 = 850,
                 yref = "y")));plot_Casos_Mx
 
 rm(Decesos_Mx_2, sum_decesos, n_amb, n_hosp)
@@ -542,7 +544,7 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
                 x1 = today,
                 xref = "x",
                 y0 = 0,
-                y1 = 140,
+                y1 = 60,
                 yref = "y"),
            list(type = "rect",
                 fillcolor = "pink",
@@ -552,7 +554,7 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
                 x1 = "2020-09-27",
                 xref = "x",
                 y0 = 0,
-                y1 = 140,
+                y1 = 135,
                 yref = "y")));plot_Casos_Tlx
 
 rm(mn_Tlx_2, n_Tlx, sum_Tlx, n_amb, n_hosp)
@@ -748,7 +750,7 @@ plot_def_Tlx <- plot_ly(Defunciones_Tlx_2,
                 x1 = today,
                 xref = "x",
                 y0 = 0,
-                y1 = 25,
+                y1 = 9,
                 yref = "y"),
            list(type = "rect",
                 fillcolor = "pink",
@@ -758,7 +760,7 @@ plot_def_Tlx <- plot_ly(Defunciones_Tlx_2,
                 x1 = "2020-09-13",
                 xref = "x",
                 y0 = 0,
-                y1 = 25,
+                y1 = 22,
                 yref = "y"))); plot_def_Tlx
 rm(Defunciones_Tlx_2, n_def_Tlx, n_hosp, n_amb)
 
