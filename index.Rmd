@@ -42,14 +42,13 @@ library(plotly)
 rm(list=ls())
 temp <- tempfile()
 download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip",temp)
-#date <- Sys.Date()
-#date <- substring(gsub("-", "", date),3)
-
-#database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
-
-database_title <- paste("201217COVID19MEXICO.csv")
+date <- Sys.Date()
+date <- substring(gsub("-", "", date),3)
+database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
+#database_title <- paste("201217COVID19MEXICO.csv")
 Mex_Data_COVID <- read.csv(unz(temp, database_title))
 unlink(temp); rm(temp, date, database_title)
+head(Mex_Data_COVID$ENTIDAD_RES)
 ```
 
 ``` {r Asignando casos, include=FALSE, warning=FALSE, fig.align="center"}
@@ -904,6 +903,7 @@ mxstate_leaflet(mnAct_Mx,
 
 #box plot para casos activos por estado
 
+rm(list=ls())
 
 
 ```
