@@ -45,7 +45,7 @@ download.file("http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/dato
 date <- Sys.Date()
 date <- substring(gsub("-", "", date),3)
 database_title <- paste(date, "COVID19MEXICO.csv", sep = "")
-#database_title <- paste("201217COVID19MEXICO.csv")
+#database_title <- paste("201231COVID19MEXICO.csv")
 Mex_Data_COVID <- read.csv(unz(temp, database_title))
 unlink(temp); rm(temp, date, database_title)
 head(Mex_Data_COVID$ENTIDAD_RES)
@@ -543,7 +543,7 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
                 x1 = today,
                 xref = "x",
                 y0 = 0,
-                y1 = 60,
+                y1 = 80,
                 yref = "y"),
            list(type = "rect",
                 fillcolor = "pink",
@@ -749,7 +749,7 @@ plot_def_Tlx <- plot_ly(Defunciones_Tlx_2,
                 x1 = today,
                 xref = "x",
                 y0 = 0,
-                y1 = 9,
+                y1 = 14,
                 yref = "y"),
            list(type = "rect",
                 fillcolor = "pink",
@@ -766,58 +766,66 @@ rm(Defunciones_Tlx_2, n_def_Tlx, n_hosp, n_amb)
 ```
 
 ```{r Boxplot-Tlx, warning=FALSE, echo=FALSE, fig.align="center"}
+# 2020
 marzo_tlax <- Mex_Data_COVID[grep("-03-", Mex_Data_COVID$fecha_def),]
 marzo_tlax <- marzo_tlax[grep("29",marzo_tlax$entidad_res),]
 marzo_tlax <- marzo_tlax[grep("Positivo", marzo_tlax$value),]
-marzo_tlax$mes <- rep("Marzo", length(marzo_tlax$fecha_actualizacion))
+marzo_tlax$mes <- rep("Marzo 2020", length(marzo_tlax$fecha_actualizacion))
 
 abril_tlax <- Mex_Data_COVID[grep("-04-", Mex_Data_COVID$fecha_def),]
 abril_tlax <- abril_tlax[grep("29",abril_tlax$entidad_res),]
 abril_tlax <- abril_tlax[grep("Positivo", abril_tlax$value),]
-abril_tlax$mes <- rep("Abril", length(abril_tlax$fecha_actualizacion))
+abril_tlax$mes <- rep("Abril 2020", length(abril_tlax$fecha_actualizacion))
 
 mayo_tlax <- Mex_Data_COVID[grep("-05-", Mex_Data_COVID$fecha_def),]
 mayo_tlax <- mayo_tlax[grep("29",mayo_tlax$entidad_res),]
 mayo_tlax <- mayo_tlax[grep("Positivo", mayo_tlax$value),]
-mayo_tlax$mes <- rep("Mayo", length(mayo_tlax$fecha_actualizacion))
+mayo_tlax$mes <- rep("Mayo 2020", length(mayo_tlax$fecha_actualizacion))
 
 jun_tlax <- Mex_Data_COVID[grep("-06-", Mex_Data_COVID$fecha_def),]
 jun_tlax <- jun_tlax[grep("29",jun_tlax$entidad_res),]
 jun_tlax <- jun_tlax[grep("Positivo", jun_tlax$value),]
-jun_tlax$mes <- rep("Junio", length(jun_tlax$fecha_actualizacion))
+jun_tlax$mes <- rep("Junio 2020", length(jun_tlax$fecha_actualizacion))
 
 jul_tlax <- Mex_Data_COVID[grep("-07-", Mex_Data_COVID$fecha_def),]
 jul_tlax <- jul_tlax[grep("29",jul_tlax$entidad_res),]
 jul_tlax <- jul_tlax[grep("Positivo", jul_tlax$value),]
-jul_tlax$mes <- rep("Julio", length(jul_tlax$fecha_actualizacion))
+jul_tlax$mes <- rep("Julio 2020", length(jul_tlax$fecha_actualizacion))
 
 agos_tlax <- Mex_Data_COVID[grep("-08-", Mex_Data_COVID$fecha_def),]
 agos_tlax <- agos_tlax[grep("29",agos_tlax$entidad_res),]
 agos_tlax <- agos_tlax[grep("Positivo", agos_tlax$value),]
-agos_tlax$mes <- rep("Agosto", length(agos_tlax$fecha_actualizacion))
+agos_tlax$mes <- rep("Agosto 2020", length(agos_tlax$fecha_actualizacion))
 
 sept_tlax <- Mex_Data_COVID[grep("-09-", Mex_Data_COVID$fecha_def),]
 sept_tlax <- sept_tlax[grep("29",sept_tlax$entidad_res),]
 sept_tlax <- sept_tlax[grep("Positivo", sept_tlax$value),]
-sept_tlax$mes <- rep("Septiembre", length(sept_tlax$fecha_actualizacion))
+sept_tlax$mes <- rep("Septiembre 2020", length(sept_tlax$fecha_actualizacion))
 
 oct_tlax <- Mex_Data_COVID[grep("-10-", Mex_Data_COVID$fecha_def),]
 oct_tlax <- oct_tlax[grep("29",oct_tlax$entidad_res),]
 oct_tlax <- oct_tlax[grep("Positivo", oct_tlax$value),]
-oct_tlax$mes <- rep("Octubre", length(oct_tlax$fecha_actualizacion))
+oct_tlax$mes <- rep("Octubre 2020", length(oct_tlax$fecha_actualizacion))
 
 nov_tlax <- Mex_Data_COVID[grep("-11-", Mex_Data_COVID$fecha_def),]
 nov_tlax <- nov_tlax[grep("29",nov_tlax$entidad_res),]
 nov_tlax <- nov_tlax[grep("Positivo", nov_tlax$value),]
-nov_tlax$mes <- rep("Noviembre", length(nov_tlax$fecha_actualizacion))
+nov_tlax$mes <- rep("Noviembre 2020", length(nov_tlax$fecha_actualizacion))
 
 dic_tlax <- Mex_Data_COVID[grep("-12-", Mex_Data_COVID$fecha_def),]
 dic_tlax <- dic_tlax[grep("29",dic_tlax$entidad_res),]
 dic_tlax <- dic_tlax[grep("Positivo", dic_tlax$value),]
-dic_tlax$mes <- rep("Diciembre", length(dic_tlax$fecha_actualizacion))
+dic_tlax$mes <- rep("Diciembre 2020", length(dic_tlax$fecha_actualizacion))
 
-def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax)
-def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"))
+# 2021
+enero_tlax_2021 <- Mex_Data_COVID[grep("2021-01-", Mex_Data_COVID$fecha_def),]
+enero_tlax_2021 <- enero_tlax_2021[grep("29",enero_tlax_2021$entidad_res),]
+enero_tlax_2021 <- marzo_tlax[grep("Positivo", enero_tlax_2021$value),]
+enero_tlax_2021$mes <- rep("Enero 2021", length(enero_tlax_2021$fecha_actualizacion))
+
+
+def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax, enero_tlax_2021)
+def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo 2020", "Abril 2020", "Mayo 2020", "Junio 2020", "Julio 2020", "Agosto 2020", "Septiembre 2020", "Octubre 2020", "Noviembre 2020", "Diciembre 2020", "Enero 2021"))
 rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax)
 
 Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>% 
