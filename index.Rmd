@@ -543,7 +543,7 @@ plot_Casos_Tlx <- plot_ly(mn_Tlx_2, x = ~fecha_sintomas, y = ~casos, color = ~ti
                 x1 = today,
                 xref = "x",
                 y0 = 0,
-                y1 = 80,
+                y1 = 110,
                 yref = "y"),
            list(type = "rect",
                 fillcolor = "pink",
@@ -820,13 +820,13 @@ dic_tlax$mes <- rep("Diciembre 2020", length(dic_tlax$fecha_actualizacion))
 # 2021
 enero_tlax_2021 <- Mex_Data_COVID[grep("2021-01-", Mex_Data_COVID$fecha_def),]
 enero_tlax_2021 <- enero_tlax_2021[grep("29",enero_tlax_2021$entidad_res),]
-enero_tlax_2021 <- marzo_tlax[grep("Positivo", enero_tlax_2021$value),]
+enero_tlax_2021 <- enero_tlax_2021[grep("Positivo", enero_tlax_2021$value),]
 enero_tlax_2021$mes <- rep("Enero 2021", length(enero_tlax_2021$fecha_actualizacion))
 
 
 def_mes_Tlx <- bind_rows(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax, enero_tlax_2021)
 def_mes_Tlx$mes <- factor(def_mes_Tlx$mes,  levels = c("Marzo 2020", "Abril 2020", "Mayo 2020", "Junio 2020", "Julio 2020", "Agosto 2020", "Septiembre 2020", "Octubre 2020", "Noviembre 2020", "Diciembre 2020", "Enero 2021"))
-rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax)
+rm(marzo_tlax, abril_tlax, mayo_tlax, jun_tlax, jul_tlax, agos_tlax, sept_tlax, oct_tlax, nov_tlax, dic_tlax, enero_tlax_2021)
 
 Def_edad_Tlx_meses_plot <- plot_ly(def_mes_Tlx, type = 'box') %>% 
   layout(boxmode = 'group',
